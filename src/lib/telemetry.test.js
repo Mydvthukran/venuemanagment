@@ -4,6 +4,8 @@ import { sanitizeEventName, sanitizeEventParams, shouldEnableTelemetry } from '.
 describe('telemetry hardening', () => {
   it('accepts known event names and rejects unknown ones', () => {
     expect(sanitizeEventName('food_order_placed')).toBe('food_order_placed')
+    expect(sanitizeEventName('impact_commander_toggled')).toBe('impact_commander_toggled')
+    expect(sanitizeEventName('impact_view_changed')).toBe('impact_view_changed')
     expect(sanitizeEventName('unknown_event')).toBeNull()
     expect(sanitizeEventName(42)).toBeNull()
   })
