@@ -1309,6 +1309,85 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
 }
 
+/* ====== Ops Advisor ====== */
+.ops-brief-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.ops-brief-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ops-brief-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.ops-brief-meta {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+}
+
+.ops-brief-action {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.ops-score-chip {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.ops-score-chip.stable {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--accent-emerald);
+}
+
+.ops-score-chip.watch {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--accent-amber);
+}
+
+.ops-score-chip.critical {
+  background: rgba(244, 63, 94, 0.14);
+  color: var(--accent-rose);
+}
+
+.ops-actions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ops-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.ops-action-index {
+  color: var(--accent-cyan);
+  font-weight: 700;
+  min-width: 24px;
+}
+
 /* ====== Cart / Order Summary ====== */
 .cart-panel {
   background: var(--bg-card);

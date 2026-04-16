@@ -63,7 +63,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 const baseStats = { crowd: 43200, wait: 8, capacity: 95, satisfaction: 92 }
 
-export default function Dashboard({ setActivePage, showToast, simulationMode = 'normal' }) {
+export default function Dashboard({ setActivePage, showToast, simulationMode = 'normal', opsSnapshot, actionPlan = [] }) {
   const [isARMode, setIsARMode] = useState(false)
   const [animatedStats, setAnimatedStats] = useState({ crowd: 0, wait: 0, capacity: 0, satisfaction: 0 })
   const scenario = getScenarioMeta(simulationMode)
@@ -191,6 +191,28 @@ export default function Dashboard({ setActivePage, showToast, simulationMode = '
           <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem' }}>Experience the venue through Augmented Reality mode</div>
         </div>
       </button>
+
+      {opsSnapshot && (
+        <div className="card animate-fadeInUp" style={{ marginBottom: 24 }}>
+          <div className="card-header" style={{ marginBottom: 10 }}>
+            <div>
+              <div className="card-title">AI Operations Brief</div>
+              <div className="card-subtitle">Current status: {opsSnapshot.status} ({opsSnapshot.score}/100)</div>
+            </div>
+            <button className="btn btn-secondary btn-sm" onClick={() => setActivePage('queues')}>
+              Open Queue Control
+            </button>
+          </div>
+          <div className="ops-actions-list">
+            {actionPlan.slice(0, 3).map((action, index) => (
+              <div key={index} className="ops-action-item">
+                <span className="ops-action-index">#{index + 1}</span>
+                <span>{action}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="stats-grid animate-fadeInUp delay-1">

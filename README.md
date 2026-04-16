@@ -23,10 +23,12 @@ Sports and live event venue experience optimization.
 6. Queue intelligence predicts near-future wait times and recommends best service point.
 7. Global Scenario Simulation Mode changes behavior across Dashboard, Queue, Navigation, and Map in real time.
 8. User actions are tracked as analytics events when Firebase env variables are configured.
+9. AI Operations Advisor computes readiness score, action plan, and downloadable scenario report JSON.
 
 ## Top-10 Differentiators
 - Context-aware decision engine for both navigation and queue selection (`src/lib/venueIntelligence.js`).
 - Cross-page Scenario Engine for Normal, Half-Time Rush, and Post-Match Egress (`src/lib/scenarioEngine.js`).
+- AI Ops Advisor with operational scoring and evidence export (`src/lib/opsAdvisor.js`).
 - Digital Twin simulation mode with live zone-density drift to mimic real crowd behavior.
 - Action-level Firebase Analytics instrumentation across chat, navigation, queue, and food flows.
 - Accessibility-first UX updates: skip link, keyboard-interactive map zones, focus-visible states, reduced-motion mode.
@@ -57,6 +59,7 @@ Tracked events include:
 - `food_order_placed`
 - `notifications_marked_read`
 - `scenario_mode_changed`
+- `scenario_report_downloaded`
 
 ### Environment variables
 Create a `.env` file with:
@@ -83,6 +86,7 @@ Unit tests cover business logic for:
 - Cart mutation and totals calculations.
 - Route and queue intelligence scoring.
 - Scenario simulation behavior transforms.
+- Operations advisor scoring and report payload generation.
 
 Run tests:
 

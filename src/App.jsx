@@ -1,10 +1,11 @@
-import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
+import { lazy, Suspense, useState, useCallback, useEffect, useMemo } from 'react'
 import { Info, Bot, Mic, Send, Globe, X } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import Login from './components/Login'
 import { getAssistantResponse, sanitizeUserInput } from './lib/assistant'
 import { trackVenueEvent } from './services/firebase'
 import { getScenarioMeta, listScenarios } from './lib/scenarioEngine'
+import { buildActionPlan, buildOpsSnapshot, buildScenarioReport } from './lib/opsAdvisor'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 const VenueMap = lazy(() => import('./components/VenueMap'))
@@ -42,6 +43,26 @@ export default function App() {
   const [chatInput, setChatInput] = useState('')
   const scenarioOptions = listScenarios()
   const activeScenario = getScenarioMeta(simulationMode)
+  const opsSnapshot = useMemo(() => buildOpsSnapshot(simulationMode), [simulationMode])
+  const actionPlan = useMemo(() => buildActionPlan(simulationMode), [simulationMode])
+
+  const downloadScenarioReport = () => {
+    const report = buildScenarioReport(simulationMode)
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+
+    link.href = url
+    link.download = `venueflow-${simulationMode}-report.json`
+    link.click()
+
+    URL.revokeObjectURL(url)
+    showToast('Scenario report downloaded.', Info)
+    trackVenueEvent('scenario_report_downloaded', {
+      scenario: simulationMode,
+      score: opsSnapshot.score,
+    })
+  }
 
   const handleSendAI = () => {
     if (isResponding) return
@@ -244,10 +265,43 @@ export default function App() {
               </button>
             ))}
           </div>
+
+          <div className="ops-brief-grid" style={{ marginTop: 14 }}>
+            <div className="ops-brief-card">
+              <div className="ops-brief-label">AI Operational Score</div>
+              <div className={`ops-score-chip ${opsSnapshot.status.toLowerCase()}`}>
+                {opsSnapshot.score}/100 • {opsSnapshot.status}
+              </div>
+              <div className="ops-brief-meta">Avg wait {opsSnapshot.avgWait} min • High-risk queues {opsSnapshot.highRiskCount}</div>
+            </div>
+
+            <div className="ops-brief-card">
+              <div className="ops-brief-label">Priority Action Plan</div>
+              {actionPlan.slice(0, 2).map((action, index) => (
+                <div key={index} className="ops-brief-action">{index + 1}. {action}</div>
+              ))}
+            </div>
+
+            <div className="ops-brief-card" style={{ justifyContent: 'space-between' }}>
+              <div>
+                <div className="ops-brief-label">Evidence Export</div>
+                <div className="ops-brief-meta">Download scenario report JSON for judging proof.</div>
+              </div>
+              <button className="btn btn-secondary btn-sm" onClick={downloadScenarioReport}>
+                Export Report
+              </button>
+            </div>
+          </div>
         </div>
 
         <Suspense fallback={<div className="card">Loading module...</div>}>
-          <PageComponent setActivePage={setActivePage} showToast={showToast} simulationMode={simulationMode} />
+          <PageComponent
+            setActivePage={setActivePage}
+            showToast={showToast}
+            simulationMode={simulationMode}
+            opsSnapshot={opsSnapshot}
+            actionPlan={actionPlan}
+          />
         </Suspense>
       </main>
     </div>
