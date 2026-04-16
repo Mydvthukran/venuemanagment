@@ -6,6 +6,7 @@ import {
   removeItemFromCart,
   calculateCartTotals,
 } from '../lib/cart'
+import { trackVenueEvent } from '../services/firebase'
 
 const menuCategories = ['All', 'Burgers', 'Pizza', 'Drinks', 'Snacks', 'Desserts']
 
@@ -35,6 +36,11 @@ export default function FoodOrder({ showToast }) {
 
   const addToCart = (item) => {
     setCart((prev) => addItemToCart(prev, item))
+    trackVenueEvent('food_item_added', {
+      item_name: item.name,
+      item_category: item.cat,
+      item_price: item.price,
+    })
   }
 
   const updateQty = (id, delta) => {
@@ -188,6 +194,10 @@ export default function FoodOrder({ showToast }) {
 
             <button className="btn btn-primary w-full" style={{ justifyContent: 'center', marginTop: 12 }} onClick={() => {
               showToast('Order placed successfully! Delivery in ~12 mins.', ShoppingCart)
+              trackVenueEvent('food_order_placed', {
+                item_count: itemCount,
+                total_value: Number(total.toFixed(2)),
+              })
               setCart([])
             }}>
               Place Order

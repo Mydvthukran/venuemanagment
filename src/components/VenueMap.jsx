@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X, Users, Clock, AlertTriangle, ArrowUpRight, Navigation, MonitorPlay } from 'lucide-react'
+import { trackVenueEvent } from '../services/firebase'
 
 const zones = [
   { id: 'north', label: 'North Stand', d: 'M200,60 Q350,20 500,60 L480,130 Q350,100 220,130 Z', density: 82, color: '#ef4444', people: 8200, wait: '12 min', temp: '24°C', gates: 'A1-A4' },
@@ -40,22 +41,61 @@ function getTextPos(id) {
 
 export default function VenueMap({ setActivePage, showToast }) {
   const [selectedZone, setSelectedZone] = useState(null)
+  const [isSimulating, setIsSimulating] = useState(false)
   const [simData, setSimData] = useState({ crowd: 46200, wait: 22 })
+  const [zoneDensity, setZoneDensity] = useState(() =>
+    Object.fromEntries(zones.map((zone) => [zone.id, zone.density])),
+  )
   
   useEffect(() => {
-    let interval
-    if (isSimulating) {
-      interval = setInterval(() => {
-        setSimData(prev => ({
-          crowd: prev.crowd + Math.floor(Math.random() * 20 - 10),
-          wait: Math.max(1, prev.wait + (Math.random() > 0.5 ? 1 : -1))
-        }))
-      }, 2000)
+    if (!isSimulating) {
+      setZoneDensity(Object.fromEntries(zones.map((zone) => [zone.id, zone.density])))
+      return undefined
     }
+
+    const interval = setInterval(() => {
+      setSimData((prev) => ({
+        crowd: prev.crowd + Math.floor(Math.random() * 20 - 10),
+        wait: Math.max(1, prev.wait + (Math.random() > 0.5 ? 1 : -1)),
+      }))
+
+      setZoneDensity((prev) => {
+        const next = { ...prev }
+        zones.forEach((zone) => {
+          const drift = Math.floor(Math.random() * 7) - 3
+          const current = prev[zone.id] ?? zone.density
+          next[zone.id] = Math.min(98, Math.max(25, current + drift))
+        })
+        return next
+      })
+    }, 2000)
+
     return () => clearInterval(interval)
   }, [isSimulating])
 
-  const selected = zones.find(z => z.id === selectedZone)
+  const selected = useMemo(() => {
+    const zone = zones.find((z) => z.id === selectedZone)
+    if (!zone) {
+      return null
+    }
+
+    return {
+      ...zone,
+      density: zoneDensity[zone.id] ?? zone.density,
+    }
+  }, [selectedZone, zoneDensity])
+
+  const toggleZoneSelection = (zoneId) => {
+    setSelectedZone((prev) => {
+      const next = prev === zoneId ? null : zoneId
+      trackVenueEvent('map_zone_selected', {
+        zone: zoneId,
+        selected: Boolean(next),
+        simulating: isSimulating,
+      })
+      return next
+    })
+  }
 
   return (
     <div>
@@ -66,8 +106,14 @@ export default function VenueMap({ setActivePage, showToast }) {
               className={`btn btn-sm ${isSimulating ? 'btn-primary' : 'btn-secondary'}`} 
               onClick={() => {
                 setIsSimulating(!isSimulating)
-                if (!isSimulating) showToast('Initializing Digital Twin mass egress simulation...', MonitorPlay)
+                trackVenueEvent('map_simulation_toggled', { enabled: !isSimulating })
+                if (!isSimulating) {
+                  showToast('Initializing Digital Twin mass egress simulation...', MonitorPlay)
+                } else {
+                  showToast('Digital Twin simulation paused.', MonitorPlay)
+                }
               }}
+              aria-pressed={isSimulating}
             >
               <MonitorPlay size={14} />
               {isSimulating ? 'Stop Simulation' : 'Run Egress Simulation'}
@@ -85,7 +131,7 @@ export default function VenueMap({ setActivePage, showToast }) {
       </div>
 
       <div className="venue-map-container animate-fadeInUp delay-1" style={{ position: 'relative' }}>
-        <svg viewBox="100 0 500 400" className="venue-map-svg">
+        <svg viewBox="100 0 500 400" className="venue-map-svg" role="img" aria-label="Interactive venue congestion map">
           {/* Field / pitch */}
           <rect x="245" y="155" width="210" height="90" rx="8" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.25)" strokeWidth="1.5" />
           <line x1="350" y1="155" x2="350" y2="245" stroke="rgba(16,185,129,0.2)" strokeWidth="1" />
@@ -95,17 +141,31 @@ export default function VenueMap({ setActivePage, showToast }) {
           {/* Zones */}
           {zones.map(zone => {
             const [tx, ty] = getTextPos(zone.id)
+            const currentDensity = zoneDensity[zone.id] ?? zone.density
             return (
-              <g key={zone.id} className="zone" onClick={() => setSelectedZone(zone.id === selectedZone ? null : zone.id)}>
+              <g
+                key={zone.id}
+                className="zone"
+                onClick={() => toggleZoneSelection(zone.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    toggleZoneSelection(zone.id)
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Toggle zone details for ${zone.label}`}
+              >
                 <path
                   d={zone.d}
-                  fill={isSimulating ? `rgba(225,29,72,${(selectedZone === zone.id ? 0.3 : 0.15) + (Math.random() * 0.2)})` : getZoneColor(zone.density)}
-                  stroke={isSimulating ? "rgba(225,29,72,0.8)" : (zone.id === selectedZone ? 'rgba(59,130,246,0.9)' : getZoneStroke(zone.density))}
+                  fill={selectedZone === zone.id ? 'rgba(225,29,72,0.26)' : getZoneColor(currentDensity)}
+                  stroke={isSimulating ? 'rgba(225,29,72,0.8)' : (zone.id === selectedZone ? 'rgba(59,130,246,0.9)' : getZoneStroke(currentDensity))}
                   strokeWidth={zone.id === selectedZone ? 2.5 : 1.5}
                   style={{ transition: 'all 0.3s' }}
                 />
                 <text x={tx} y={ty - 6} className="zone-label" fontSize="10">{zone.label}</text>
-                <text x={tx} y={ty + 8} className="zone-label" fontSize="9" opacity="0.7">{zone.density}%</text>
+                <text x={tx} y={ty + 8} className="zone-label" fontSize="9" opacity="0.7">{currentDensity}%</text>
               </g>
             )
           })}
@@ -127,7 +187,7 @@ export default function VenueMap({ setActivePage, showToast }) {
           <div className="zone-detail-panel animate-fadeIn">
             <div className="zone-detail-header">
               <div className="zone-detail-title">{selected.label}</div>
-              <button className="zone-close-btn" onClick={() => setSelectedZone(null)}>
+              <button className="zone-close-btn" aria-label="Close zone details" onClick={() => setSelectedZone(null)}>
                 <X size={14} />
               </button>
             </div>
@@ -166,7 +226,14 @@ export default function VenueMap({ setActivePage, showToast }) {
                 High congestion detected — alternate routes suggested
               </div>
             )}
-            <button className="btn btn-primary btn-sm w-full" style={{ marginTop: 14, justifyContent: 'center' }} onClick={() => setActivePage('navigate')}>
+            <button
+              className="btn btn-primary btn-sm w-full"
+              style={{ marginTop: 14, justifyContent: 'center' }}
+              onClick={() => {
+                setActivePage('navigate')
+                trackVenueEvent('map_navigate_to_zone', { zone: selected.label, density: selected.density })
+              }}
+            >
               <Navigation size={14} />
               Navigate Here
               <ArrowUpRight size={13} />

@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Clock, Users, TrendingDown, RefreshCw, Filter, Search, Smartphone } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Clock, Users, TrendingDown, RefreshCw, Search, Smartphone, Sparkles } from 'lucide-react'
+import { getQueueRecommendation, rankQueues } from '../lib/venueIntelligence'
+import { trackVenueEvent } from '../services/firebase'
 
 const queues = [
   { id: 1, name: 'Main Food Court', location: 'Zone A — Level 1', icon: '🍔', wait: 14, people: 86, capacity: 75, trend: 'up', color: 'amber' },
@@ -28,13 +30,20 @@ export default function QueueManager({ showToast }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
 
-  const filtered = queues
-    .filter(q => {
+  const filtered = useMemo(
+    () =>
+      queues
+        .filter((q) => {
       if (filter === 'low') return q.wait <= 5
       if (filter === 'busy') return q.wait > 12
       return true
-    })
-    .filter(q => q.name.toLowerCase().includes(search.toLowerCase()))
+        })
+        .filter((q) => q.name.toLowerCase().includes(search.toLowerCase())),
+    [filter, search],
+  )
+
+  const rankedQueues = useMemo(() => rankQueues(filtered), [filtered])
+  const recommendation = useMemo(() => getQueueRecommendation(filtered), [filtered])
 
   const avgWait = Math.round(queues.reduce((a, q) => a + q.wait, 0) / queues.length)
   const totalInQueue = queues.reduce((a, q) => a + q.people, 0)
@@ -47,12 +56,32 @@ export default function QueueManager({ showToast }) {
           <p>Real-time wait times across all venues and facilities</p>
         </div>
         <div className="header-actions">
-          <button className="btn btn-secondary btn-sm" onClick={() => showToast('Queue times refreshed from sensors.', Clock)}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => {
+              showToast('Queue times refreshed from sensors.', Clock)
+              trackVenueEvent('queues_refreshed', { filter, queryLength: search.length })
+            }}
+          >
             <RefreshCw size={14} />
             Refresh
           </button>
         </div>
       </div>
+
+      {recommendation && (
+        <div className="delivery-banner animate-fadeInUp delay-1" style={{ marginBottom: 18 }}>
+          <div className="delivery-banner-icon" style={{ background: 'var(--gradient-emerald)' }}>
+            <Sparkles size={22} />
+          </div>
+          <div className="delivery-banner-text">
+            <h3>Smart Recommendation: {recommendation.name}</h3>
+            <p>
+              Predicted wait in 10 minutes: {recommendation.predictedWait} min, occupancy load {Math.round(recommendation.capacityLoad)}%.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Summary Stats */}
       <div className="stats-grid animate-fadeInUp delay-1">
@@ -108,6 +137,7 @@ export default function QueueManager({ showToast }) {
           <input
             type="text"
             placeholder="Search locations..."
+            aria-label="Search queue locations"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -116,7 +146,7 @@ export default function QueueManager({ showToast }) {
 
       {/* Queue List */}
       <div className="queue-list animate-fadeInUp delay-3">
-        {filtered.map((q) => {
+        {rankedQueues.map((q) => {
           const waitClass = getWaitClass(q.wait)
           const pct = getCapacityPct(q.people, q.capacity)
           return (
@@ -144,11 +174,21 @@ export default function QueueManager({ showToast }) {
               <div className="queue-wait" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                 <div className={`queue-wait-time wait-${waitClass}`}>{q.wait}m</div>
                 <div className="queue-wait-label">wait</div>
+                <div className="queue-wait-label" style={{ textTransform: 'none' }}>
+                  {q.predictedWait}m in 10m
+                </div>
                 {q.wait > 5 && (
                   <button 
                     className="btn btn-primary btn-sm" 
                     style={{ padding: '2px 8px', fontSize: '0.65rem', transform: 'scale(0.9)', transformOrigin: 'right center' }}
-                    onClick={() => showToast(`Joined virtual queue for ${q.name}. ETA: ${q.wait}m.`, Smartphone)}
+                    onClick={() => {
+                      showToast(`Joined virtual queue for ${q.name}. ETA: ${q.wait}m.`, Smartphone)
+                      trackVenueEvent('virtual_queue_joined', {
+                        queue_name: q.name,
+                        wait: q.wait,
+                        predicted_wait: q.predictedWait,
+                      })
+                    }}
                   >
                     <Smartphone size={10} /> Join
                   </button>
@@ -157,7 +197,7 @@ export default function QueueManager({ showToast }) {
             </div>
           )
         })}
-        {filtered.length === 0 && (
+        {rankedQueues.length === 0 && (
           <div style={{
             textAlign: 'center', padding: 40,
             color: 'var(--text-muted)', fontSize: '0.9rem'

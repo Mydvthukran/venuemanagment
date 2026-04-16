@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarClock, Play, Pause, Clock, Trophy, Users, Zap, Music } from 'lucide-react'
+import { CalendarClock } from 'lucide-react'
 
 const timelineEvents = [
   {

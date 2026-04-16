@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard, Map, Clock, UtensilsCrossed,
   Navigation, CalendarClock, Bell, Settings,
-  Ticket, Shield, Award, X
+  Ticket, Award, X
 } from 'lucide-react'
 
 const navItems = [

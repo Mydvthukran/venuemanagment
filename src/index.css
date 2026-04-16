@@ -112,11 +112,38 @@ a {
   color: inherit;
 }
 
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 16px;
+  background: var(--accent-cyan);
+  color: #111827;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 8px;
+  z-index: 100000;
+  transition: top 0.2s var(--ease-smooth);
+}
+
+.skip-link:focus-visible {
+  top: 16px;
+}
+
 button {
   cursor: pointer;
   border: none;
   outline: none;
   font-family: var(--font-body);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
 }
 
 ul, ol { list-style: none; }
@@ -750,6 +777,15 @@ img { max-width: 100%; display: block; }
   transform-origin: center;
 }
 
+.zone:focus-visible {
+  outline: none;
+}
+
+.zone:focus-visible path {
+  stroke: var(--accent-cyan);
+  stroke-width: 3px;
+}
+
 .zone-label {
   font-family: var(--font-body);
   font-size: 11px;
@@ -886,7 +922,7 @@ img { max-width: 100%; display: block; }
   border-radius: var(--radius-md);
   overflow: hidden;
   transition: all 0.3s var(--ease-smooth);
-  cursor: pointer;
+  cursor: default;
 }
 
 .food-card:hover {
@@ -2064,4 +2100,13 @@ img { max-width: 100%; display: block; }
   0% { transform: translateY(0) scale(1) rotateX(45deg); opacity: 0.8; }
   50% { transform: translateY(-40px) scale(1.1) rotateX(15deg); opacity: 1; box-shadow: 0 0 60px rgba(59,130,246,0.8); }
   100% { transform: translateY(0) scale(1) rotateX(45deg); opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

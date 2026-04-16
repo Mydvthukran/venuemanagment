@@ -2,9 +2,10 @@
 .git
 .gitignore
 node_modules/
-src/
-public/
-tsconfig.json
-vite.config.js
+dist/
+dist-ssr/
 .gemini/
 *.log
+.env
+.env.*
+!.env.example

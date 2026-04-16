@@ -2,8 +2,8 @@ import { useState } from 'react'
 import {
   Bell, AlertTriangle, MapPin, UtensilsCrossed,
   Clock, Users, Shield, CheckCircle, Megaphone,
-  ChevronDown, Settings
 } from 'lucide-react'
+import { trackVenueEvent } from '../services/firebase'
 
 const notifications = [
   {
@@ -136,6 +136,7 @@ export default function Notifications() {
 
   const markAllRead = () => {
     setItems(prev => prev.map(n => ({ ...n, unread: false })))
+    trackVenueEvent('notifications_marked_read', { unreadCount })
   }
 
   return (

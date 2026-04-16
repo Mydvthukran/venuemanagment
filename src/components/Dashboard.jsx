@@ -8,6 +8,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar
 } from 'recharts'
+import { trackVenueEvent } from '../services/firebase'
 
 // Simulated crowd flow data
 const crowdFlowData = [
@@ -28,13 +29,6 @@ const zoneData = [
   { zone: 'West', density: 48 },
   { zone: 'VIP', density: 72 },
   { zone: 'Food', density: 88 },
-]
-
-const quickActions = [
-  { icon: UtensilsCrossed, label: 'Order Food', color: 'var(--accent-amber)' },
-  { icon: Navigation, label: 'Navigate', color: 'var(--accent-cyan)' },
-  { icon: MapPin, label: 'Find Seat', color: 'var(--accent-purple)' },
-  { icon: ShieldCheck, label: 'Emergency', color: 'var(--accent-rose)' },
 ]
 
 const recentAlerts = [
@@ -87,7 +81,14 @@ export default function Dashboard({ setActivePage, showToast }) {
             <div className="ar-badge">
               <span className="live-dot" style={{ background: 'var(--accent-emerald)' }}></span> VR SIMULATION ACTIVE
             </div>
-            <button className="ar-close-btn" onClick={() => setIsARMode(false)}>
+            <button
+              className="ar-close-btn"
+              aria-label="Close VR simulation"
+              onClick={() => {
+                setIsARMode(false)
+                trackVenueEvent('dashboard_vr_closed')
+              }}
+            >
               <X size={20} />
             </button>
           </div>
@@ -132,7 +133,10 @@ export default function Dashboard({ setActivePage, showToast }) {
           </span>
           <button 
             className="btn btn-secondary btn-sm"
-            onClick={() => showToast('Network connection established: Stadium_VIP_5G', Wifi)}
+            onClick={() => {
+              showToast('Network connection established: Stadium_VIP_5G', Wifi)
+              trackVenueEvent('dashboard_network_pinged')
+            }}
           >
             <Wifi size={14} />
             Connected
@@ -141,7 +145,8 @@ export default function Dashboard({ setActivePage, showToast }) {
       </div>
 
       {/* GIANT VR SIMULATION BUTTON */}
-      <div 
+      <button
+        type="button"
         className="card animate-fadeInUp" 
         style={{ 
           marginBottom: 24, 
@@ -153,9 +158,15 @@ export default function Dashboard({ setActivePage, showToast }) {
           gap: 16, 
           padding: '28px 20px', 
           boxShadow: '0 8px 30px rgba(225,29,72,0.4)', 
-          border: '1px solid rgba(255,255,255,0.2)' 
+          border: '1px solid rgba(255,255,255,0.2)',
+          width: '100%',
+          textAlign: 'left',
         }}
-        onClick={() => setIsARMode(true)}
+        onClick={() => {
+          setIsARMode(true)
+          trackVenueEvent('dashboard_vr_opened')
+        }}
+        aria-label="Launch VR simulator"
       >
         <div style={{ background: 'rgba(255,255,255,0.2)', padding: 12, borderRadius: '50%' }}>
           <Glasses size={32} color="white" />
@@ -164,7 +175,7 @@ export default function Dashboard({ setActivePage, showToast }) {
           <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', letterSpacing: 1 }}>LAUNCH VR SIMULATOR</div>
           <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem' }}>Experience the venue through Augmented Reality mode</div>
         </div>
-      </div>
+      </button>
 
       {/* Stats Grid */}
       <div className="stats-grid animate-fadeInUp delay-1">

@@ -19,7 +19,24 @@ Sports and live event venue experience optimization.
 2. Dashboard displays live operational snapshots.
 3. User can switch across map, queue, food, and navigation tools.
 4. AI assistant provides context-aware guidance for common venue intents.
-5. User actions can be tracked as analytics events when Firebase env variables are configured.
+5. Smart route logic dynamically ranks paths by strategy (balanced, fastest, least crowded, least walking).
+6. Queue intelligence predicts near-future wait times and recommends best service point.
+7. User actions are tracked as analytics events when Firebase env variables are configured.
+
+## Top-10 Differentiators
+- Context-aware decision engine for both navigation and queue selection (`src/lib/venueIntelligence.js`).
+- Digital Twin simulation mode with live zone-density drift to mimic real crowd behavior.
+- Action-level Firebase Analytics instrumentation across chat, navigation, queue, and food flows.
+- Accessibility-first UX updates: skip link, keyboard-interactive map zones, focus-visible states, reduced-motion mode.
+- Test-backed business logic for assistant, cart, and venue intelligence modules.
+
+## Judging Criteria Coverage
+- Code Quality: modularized domain logic, lazy-loaded routes, reduced dead code, cleaner component responsibilities.
+- Security: input sanitization, CSP headers, no hardcoded secrets in source, `.env.local` excluded from git.
+- Efficiency: code splitting for page modules plus deterministic scoring utilities.
+- Testing: unit tests for assistant, cart math, queue prediction, and route ranking.
+- Accessibility: semantic labels, dialog/navigation ARIA, keyboard map controls, focus and reduced-motion support.
+- Google Services: Firebase Analytics integration with meaningful event coverage.
 
 ## Google Services Integration
 This project includes Firebase Analytics integration.
@@ -27,6 +44,16 @@ This project includes Firebase Analytics integration.
 Tracked events include:
 - `assistant_message_sent`
 - `assistant_reply_generated`
+- `page_view`
+- `dashboard_vr_opened`
+- `dashboard_vr_closed`
+- `navigation_destination_selected`
+- `navigation_strategy_changed`
+- `navigation_started`
+- `virtual_queue_joined`
+- `food_item_added`
+- `food_order_placed`
+- `notifications_marked_read`
 
 ### Environment variables
 Create a `.env` file with:

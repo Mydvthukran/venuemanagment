@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useCallback } from 'react'
+import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { Info, Bot, Mic, Send, Globe, X } from 'lucide-react'
 import Sidebar from './components/Sidebar'
 import Login from './components/Login'
@@ -32,6 +32,7 @@ export default function App() {
   const [aiPanelOpen, setAiPanelOpen] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [activeLang, setActiveLang] = useState('EN')
+  const [isResponding, setIsResponding] = useState(false)
   
   const initialBotMsg = activeLang === 'EN' ? "Hello! I'm your digital concierge. How can I assist your venue experience today?" : "¡Hola! Soy tu conserje digital. ¿Cómo puedo asistir en tu experiencia hoy?"
   
@@ -39,12 +40,15 @@ export default function App() {
   const [chatInput, setChatInput] = useState('')
 
   const handleSendAI = () => {
+    if (isResponding) return
+
     const safeInput = sanitizeUserInput(chatInput)
     if (!safeInput) return
 
     const userMessageId = `user-${Date.now()}`
     setChatMessages(prev => [...prev, { id: userMessageId, type: 'user', text: safeInput }])
     setChatInput('')
+    setIsResponding(true)
     trackVenueEvent('assistant_message_sent', { language: activeLang })
     
     // Simulate bot thinking
@@ -63,8 +67,17 @@ export default function App() {
           text: assistantReply.text,
         },
       ])
+      setIsResponding(false)
     }, 1200)
   }
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return
+    }
+
+    trackVenueEvent('page_view', { page: activePage })
+  }, [isAuthenticated, activePage])
 
   const toggleListen = () => {
     setIsListening(true)
@@ -93,6 +106,8 @@ export default function App() {
 
   return (
     <div className="app-layout">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+
       {/* Global AI Assistant */}
       <button
         type="button"
@@ -104,7 +119,7 @@ export default function App() {
         <Bot size={24} />
       </button>
 
-      <div className={`ai-panel ${aiPanelOpen ? 'open' : ''}`} role="dialog" aria-label="VenueFlow AI assistant">
+      <div className={`ai-panel ${aiPanelOpen ? 'open' : ''}`} role="dialog" aria-label="VenueFlow AI assistant" aria-busy={isResponding}>
         <div className="ai-panel-header">
           <div className="title">
             <Bot size={18} color="var(--accent-blue)" />
@@ -151,7 +166,7 @@ export default function App() {
           <button className={`mic-button ${isListening ? 'listening' : ''}`} aria-label="Record voice command" onClick={toggleListen}>
             <Mic size={16} />
           </button>
-          <button className="mic-button" aria-label="Send message" style={{ background: 'transparent' }} onClick={handleSendAI}>
+          <button className="mic-button" aria-label="Send message" style={{ background: 'transparent' }} onClick={handleSendAI} disabled={isResponding}>
             <Send size={16} />
           </button>
         </div>
@@ -200,7 +215,7 @@ export default function App() {
         userName={userName}
       />
 
-      <main className="main-content">
+      <main className="main-content" id="main-content">
         <Suspense fallback={<div className="card">Loading module...</div>}>
           <PageComponent setActivePage={setActivePage} showToast={showToast} />
         </Suspense>

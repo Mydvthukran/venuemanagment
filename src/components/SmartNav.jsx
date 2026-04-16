@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
-  Navigation, Clock, Users, Footprints,
+  Navigation, Users, Footprints,
   ArrowRight, MapPin, AlertTriangle,
   Car, DoorOpen, UtensilsCrossed, Ticket, Glasses, X, ArrowUp
 } from 'lucide-react'
+import { rankRoutes } from '../lib/venueIntelligence'
+import { trackVenueEvent } from '../services/firebase'
 
 const destinations = [
   { id: 'seat', label: 'My Seat (A-14)', icon: Ticket },
@@ -37,15 +39,33 @@ const routesData = {
 export default function SmartNav({ showToast }) {
   const [destination, setDestination] = useState('seat')
   const [isARMode, setIsARMode] = useState(false)
+  const [routeStrategy, setRouteStrategy] = useState('balanced')
 
-  const routes = routesData[destination] || []
+  const routes = useMemo(
+    () => rankRoutes(routesData[destination] || [], routeStrategy),
+    [destination, routeStrategy],
+  )
+
+  const strategyOptions = [
+    { id: 'balanced', label: 'Balanced' },
+    { id: 'fastest', label: 'Fastest ETA' },
+    { id: 'leastCrowded', label: 'Least Crowded' },
+    { id: 'leastWalking', label: 'Least Walking' },
+  ]
 
   return (
     <div>
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
           <div className="header-actions" style={{ marginBottom: 8 }}>
-            <button className="btn btn-secondary btn-sm" aria-label="Open augmented reality navigation" onClick={() => setIsARMode(true)}>
+            <button
+              className="btn btn-secondary btn-sm"
+              aria-label="Open augmented reality navigation"
+              onClick={() => {
+                setIsARMode(true)
+                trackVenueEvent('ar_navigation_opened', { destination })
+              }}
+            >
               <Glasses size={14} />
               Enter AR Mode
             </button>
@@ -76,7 +96,10 @@ export default function SmartNav({ showToast }) {
             return (
               <button
                 key={dest.id}
-                onClick={() => setDestination(dest.id)}
+                onClick={() => {
+                  setDestination(dest.id)
+                  trackVenueEvent('navigation_destination_selected', { destination: dest.id })
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 10,
                   padding: '14px 16px',
@@ -96,6 +119,24 @@ export default function SmartNav({ showToast }) {
               </button>
             )
           })}
+        </div>
+      </div>
+
+      <div className="card animate-fadeInUp delay-2" style={{ marginBottom: 24 }}>
+        <div className="card-title mb-3">Optimization Strategy</div>
+        <div className="pill-tabs" style={{ flexWrap: 'wrap' }}>
+          {strategyOptions.map((option) => (
+            <button
+              key={option.id}
+              className={`pill-tab ${routeStrategy === option.id ? 'active' : ''}`}
+              onClick={() => {
+                setRouteStrategy(option.id)
+                trackVenueEvent('navigation_strategy_changed', { strategy: option.id, destination })
+              }}
+            >
+              {option.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -125,10 +166,10 @@ export default function SmartNav({ showToast }) {
               {route.recommended && (
                 <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                   <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Navigation size={12} /> Low traffic
+                    <Navigation size={12} /> Smart recommendation
                   </span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: 10 }}>
-                    🌟 +50 Reward Pts
+                    {route.reason}
                   </span>
                 </div>
               )}
@@ -154,7 +195,15 @@ export default function SmartNav({ showToast }) {
               className="btn-icon"
               style={{ flexShrink: 0 }}
               aria-label={`Start navigation via ${route.name}`}
-              onClick={() => showToast(`Navigation started: ${route.name}`, Navigation)}
+              onClick={() => {
+                showToast(`Navigation started: ${route.name}`, Navigation)
+                trackVenueEvent('navigation_started', {
+                  destination,
+                  strategy: routeStrategy,
+                  route: route.name,
+                  eta: route.time,
+                })
+              }}
             >
               <ArrowRight size={16} />
             </button>
@@ -190,7 +239,14 @@ export default function SmartNav({ showToast }) {
             <div className="ar-badge">
               <span className="live-dot" style={{ background: 'var(--accent-emerald)' }}></span> Camera Feed Active
             </div>
-            <button className="ar-close-btn" aria-label="Close AR mode" onClick={() => setIsARMode(false)}>
+            <button
+              className="ar-close-btn"
+              aria-label="Close AR mode"
+              onClick={() => {
+                setIsARMode(false)
+                trackVenueEvent('ar_navigation_closed', { destination })
+              }}
+            >
               <X size={20} />
             </button>
           </div>
