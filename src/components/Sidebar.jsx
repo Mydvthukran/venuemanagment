@@ -2,12 +2,13 @@ import { useState } from 'react'
 import {
   LayoutDashboard, Map, Clock, UtensilsCrossed,
   Navigation, CalendarClock, Bell, Settings,
-  Ticket, Award, X
+  Ticket, Award, X, Zap
 } from 'lucide-react'
 import { getScenarioMeta } from '../lib/scenarioEngine'
 
 const navItems = [
   { id: 'main', label: 'MAIN', items: [
+    { id: 'impact', label: 'Impact Lab', icon: Zap, badge: 'NEW' },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'map', label: 'Venue Map', icon: Map },
     { id: 'queues', label: 'Queue Status', icon: Clock, badge: 3 },

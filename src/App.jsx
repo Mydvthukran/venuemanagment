@@ -14,8 +14,10 @@ const FoodOrder = lazy(() => import('./components/FoodOrder'))
 const SmartNav = lazy(() => import('./components/SmartNav'))
 const EventTimeline = lazy(() => import('./components/EventTimeline'))
 const Notifications = lazy(() => import('./components/Notifications'))
+const ImpactLab = lazy(() => import('./components/ImpactLab'))
 
 const pages = {
+  impact: ImpactLab,
   dashboard: Dashboard,
   map: VenueMap,
   queues: QueueManager,
@@ -28,7 +30,7 @@ const pages = {
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userName, setUserName] = useState('John Doe')
-  const [activePage, setActivePage] = useState('dashboard')
+  const [activePage, setActivePage] = useState('impact')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [toasts, setToasts] = useState([])
   const [aiPanelOpen, setAiPanelOpen] = useState(false)

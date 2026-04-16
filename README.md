@@ -8,6 +8,7 @@ Sports and live event venue experience optimization.
 ## Approach and Logic
 - Frontend built with React + Vite for fast interactions and modular component architecture.
 - Smart assistant layer uses deterministic intent parsing for predictable responses and safer input handling.
+- Impact Lab introduces an Autonomous Incident Commander loop (detect -> decide -> execute -> verify) to turn analytics into action.
 - Core product modules are separated by user needs:
   - Dashboard for live venue analytics.
   - Navigation for route suggestions by congestion.
@@ -22,17 +23,34 @@ Sports and live event venue experience optimization.
 5. Smart route logic dynamically ranks paths by strategy (balanced, fastest, least crowded, least walking).
 6. Queue intelligence predicts near-future wait times and recommends best service point.
 7. Global Scenario Simulation Mode changes behavior across Dashboard, Queue, Navigation, and Map in real time.
-8. User actions are tracked as analytics events when Firebase env variables are configured.
-9. AI Operations Advisor computes readiness score, action plan, and downloadable scenario report JSON.
+8. Autonomous Incident Commander simulates interventions and projects measurable outcome deltas (wait, risk, compliance).
+9. User actions are tracked as analytics events when Firebase env variables are configured.
+10. AI Operations Advisor computes readiness score, action plan, and downloadable scenario report JSON.
+
+## Judge Storyline (90-Second Demo)
+1. Problem: high-density venues fail when queues and egress surges are detected too late.
+2. Intervention: VenueFlow continuously detects anomalies, ranks response options, and orchestrates actions across queue, navigation, and food operations.
+3. Impact: the Impact Lab module shows projected wait reduction, risk reduction, and route-compliance lift in real time.
 
 ## Top-10 Differentiators
+- Autonomous Incident Commander module with visible control loop and before/after impact metrics.
 - Context-aware decision engine for both navigation and queue selection (`src/lib/venueIntelligence.js`).
 - Cross-page Scenario Engine for Normal, Half-Time Rush, and Post-Match Egress (`src/lib/scenarioEngine.js`).
 - AI Ops Advisor with operational scoring and evidence export (`src/lib/opsAdvisor.js`).
 - Digital Twin simulation mode with live zone-density drift to mimic real crowd behavior.
+- In-app system visualization (storyline, architecture flow, and decision logic tabs) for judge clarity.
 - Action-level Firebase Analytics instrumentation across chat, navigation, queue, and food flows.
 - Accessibility-first UX updates: skip link, keyboard-interactive map zones, focus-visible states, reduced-motion mode.
 - Test-backed business logic for assistant, cart, and venue intelligence modules.
+
+## System Visualization
+```mermaid
+flowchart LR
+  A[Signal Ingest\nQueue events, map taps, service throughput] --> B[Scenario Engine\nNormal / Half-Time / Egress]
+  B --> C[Ops Advisor\nRisk score + ranked interventions]
+  C --> D[Action Channels\nNavigation, Queue, Food, Notifications]
+  D --> E[Measured Outcomes\nWait down, risk down, compliance up]
+```
 
 ## Judging Criteria Coverage
 - Code Quality: modularized domain logic, lazy-loaded routes, reduced dead code, cleaner component responsibilities.
@@ -60,6 +78,9 @@ Tracked events include:
 - `notifications_marked_read`
 - `scenario_mode_changed`
 - `scenario_report_downloaded`
+- `impact_commander_toggled`
+- `impact_queue_drilldown`
+- `impact_view_changed`
 
 ### Environment variables
 Create a `.env` file with:
