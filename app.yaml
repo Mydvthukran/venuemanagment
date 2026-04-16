@@ -1,0 +1,17 @@
+runtime: nodejs22
+instance_class: F1
+
+handlers:
+  # Serve static assets from the Vite build directory
+  - url: /assets
+    static_dir: dist/assets
+
+  # Serve other static files like favicon, manifest, etc.
+  - url: /(.*\.(json|ico|js|css|png|jpg|svg|webp|png))$
+    static_files: dist/\1
+    upload: dist/.*\.(json|ico|js|css|png|jpg|svg|webp|png)$
+
+  # Catch-all handler for React Single Page Application routing
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index.html

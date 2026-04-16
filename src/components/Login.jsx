@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ArrowRight, Ticket, Lock, Mail } from 'lucide-react'
-
+import { ArrowRight, Ticket, Lock, Mail, ShieldCheck, User } from 'lucide-react'
 export default function Login({ onLogin }) {
+  const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [ticketId, setTicketId] = useState('')
   const [loading, setLoading] = useState(false)
@@ -12,7 +12,7 @@ export default function Login({ onLogin }) {
     // Simulate API call for login
     setTimeout(() => {
       setLoading(false)
-      onLogin()
+      onLogin({ fullName: fullName || 'Custom User' })
     }, 1500)
   }
 
@@ -26,6 +26,22 @@ export default function Login({ onLogin }) {
         </div>
 
         <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Full Name</label>
+            <div className="search-input-wrapper" style={{ maxWidth: '100%' }}>
+              <User size={16} className="search-icon" />
+              <input
+                type="text"
+                className="form-input"
+                style={{ paddingLeft: 40 }}
+                placeholder="e.g. Alex Jensen"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
           <div className="form-group">
             <label className="form-label">Email Address</label>
             <div className="search-input-wrapper" style={{ maxWidth: '100%' }}>
@@ -78,9 +94,9 @@ export default function Login({ onLogin }) {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          <Lock size={12} style={{ verticalAlign: '-2px', marginRight: 4 }} />
-          Securely connecting to stadium network
+        <div style={{ textAlign: 'center', marginTop: 24, fontSize: '0.8rem', color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontWeight: 500 }}>
+          <ShieldCheck size={14} />
+          Blockchain Identity Verification Active
         </div>
       </div>
     </div>

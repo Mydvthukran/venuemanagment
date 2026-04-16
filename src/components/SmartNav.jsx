@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Navigation, Clock, Users, Footprints,
   ArrowRight, MapPin, AlertTriangle,
-  Car, DoorOpen, UtensilsCrossed, Ticket
+  Car, DoorOpen, UtensilsCrossed, Ticket, Glasses, X, ArrowUp
 } from 'lucide-react'
 
 const destinations = [
@@ -34,8 +34,9 @@ const routesData = {
   ],
 }
 
-export default function SmartNav() {
+export default function SmartNav({ showToast }) {
   const [destination, setDestination] = useState('seat')
+  const [isARMode, setIsARMode] = useState(false)
 
   const routes = routesData[destination] || []
 
@@ -43,6 +44,12 @@ export default function SmartNav() {
     <div>
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
+          <div className="header-actions" style={{ marginBottom: 8 }}>
+            <button className="btn btn-secondary btn-sm" onClick={() => setIsARMode(true)}>
+              <Glasses size={14} />
+              Enter AR Mode
+            </button>
+          </div>
           <h2>Smart Navigation</h2>
           <p>AI-optimized routes that avoid crowd congestion</p>
         </div>
@@ -115,6 +122,16 @@ export default function SmartNav() {
             <div className="route-info">
               <div className="route-name">{route.name}</div>
               <div className="route-detail">{route.detail}</div>
+              {route.recommended && (
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-emerald)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Navigation size={12} /> Low traffic
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: 10 }}>
+                    🌟 +50 Reward Pts
+                  </span>
+                </div>
+              )}
               <div className="route-stats">
                 <span className="route-stat">
                   <MapPin size={12} /> {route.distance}
@@ -158,6 +175,45 @@ export default function SmartNav() {
           We recommend using alternate routes via Gate D corridor.
         </div>
       </div>
+
+      {/* Full Screen AR Simulator */}
+      {isARMode && (
+        <div className="ar-overlay">
+          <div className="ar-viewfinder"></div>
+          
+          <div className="ar-hud-header">
+            <div className="ar-badge">
+              <span className="live-dot" style={{ background: 'var(--accent-emerald)' }}></span> Camera Feed Active
+            </div>
+            <button className="ar-close-btn" onClick={() => setIsARMode(false)}>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="ar-direction-core">
+            <div className="ar-arrow">
+              <ArrowUp size={64} color="white" />
+            </div>
+            
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', fontWeight: 800, textShadow: '0 4px 20px rgba(59,130,246,0.6)' }}>
+                150<span style={{ fontSize: '1.5rem', color: 'var(--accent-cyan)' }}>m</span>
+              </div>
+              <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', letterSpacing: 1, textTransform: 'uppercase' }}>
+                Proceed Straight
+              </div>
+            </div>
+          </div>
+
+          <div style={{ position: 'absolute', bottom: 40, background: 'rgba(0,0,0,0.6)', padding: '16px 24px', borderRadius: '40px', border: '1px solid var(--accent-blue)', display: 'flex', gap: 16, alignItems: 'center' }}>
+            <MapPin size={24} color="var(--accent-cyan)" />
+            <div>
+              <div style={{ fontWeight: 700 }}>Navigating to: {destinations.find(d => d.id === destination)?.label}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)' }}>Estimated time: 3 mins</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

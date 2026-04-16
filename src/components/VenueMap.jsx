@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Users, Clock, AlertTriangle, ArrowUpRight } from 'lucide-react'
+import { X, Users, Clock, AlertTriangle, ArrowUpRight, Navigation, MonitorPlay } from 'lucide-react'
 
 const zones = [
   { id: 'north', label: 'North Stand', d: 'M200,60 Q350,20 500,60 L480,130 Q350,100 220,130 Z', density: 82, color: '#ef4444', people: 8200, wait: '12 min', temp: '24°C', gates: 'A1-A4' },
@@ -38,8 +38,22 @@ function getTextPos(id) {
   return positions[id] || [350, 200]
 }
 
-export default function VenueMap({ setActivePage }) {
+export default function VenueMap({ setActivePage, showToast }) {
   const [selectedZone, setSelectedZone] = useState(null)
+  const [simData, setSimData] = useState({ crowd: 46200, wait: 22 })
+  
+  useEffect(() => {
+    let interval
+    if (isSimulating) {
+      interval = setInterval(() => {
+        setSimData(prev => ({
+          crowd: prev.crowd + Math.floor(Math.random() * 20 - 10),
+          wait: Math.max(1, prev.wait + (Math.random() > 0.5 ? 1 : -1))
+        }))
+      }, 2000)
+    }
+    return () => clearInterval(interval)
+  }, [isSimulating])
 
   const selected = zones.find(z => z.id === selectedZone)
 
@@ -47,8 +61,20 @@ export default function VenueMap({ setActivePage }) {
     <div>
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
-          <h2>Venue Map</h2>
-          <p>Live crowd density and zone monitoring</p>
+          <div className="header-actions" style={{ marginBottom: 8 }}>
+            <button 
+              className={`btn btn-sm ${isSimulating ? 'btn-primary' : 'btn-secondary'}`} 
+              onClick={() => {
+                setIsSimulating(!isSimulating)
+                if (!isSimulating) showToast('Initializing Digital Twin mass egress simulation...', MonitorPlay)
+              }}
+            >
+              <MonitorPlay size={14} />
+              {isSimulating ? 'Stop Simulation' : 'Run Egress Simulation'}
+            </button>
+          </div>
+          <h2>{isSimulating ? 'Digital Twin Simulator' : 'Venue Density Map'}</h2>
+          <p>{isSimulating ? `Modeling ${simData.crowd.toLocaleString()} attendance flow via AI algorithms` : 'Real-time spatial distribution and bottleneck tracking'}</p>
         </div>
         <div className="header-actions">
           <span className="live-badge">
@@ -73,8 +99,8 @@ export default function VenueMap({ setActivePage }) {
               <g key={zone.id} className="zone" onClick={() => setSelectedZone(zone.id === selectedZone ? null : zone.id)}>
                 <path
                   d={zone.d}
-                  fill={getZoneColor(zone.density)}
-                  stroke={zone.id === selectedZone ? 'rgba(59,130,246,0.9)' : getZoneStroke(zone.density)}
+                  fill={isSimulating ? `rgba(225,29,72,${(selectedZone === zone.id ? 0.3 : 0.15) + (Math.random() * 0.2)})` : getZoneColor(zone.density)}
+                  stroke={isSimulating ? "rgba(225,29,72,0.8)" : (zone.id === selectedZone ? 'rgba(59,130,246,0.9)' : getZoneStroke(zone.density))}
                   strokeWidth={zone.id === selectedZone ? 2.5 : 1.5}
                   style={{ transition: 'all 0.3s' }}
                 />
@@ -90,7 +116,7 @@ export default function VenueMap({ setActivePage }) {
             [350, 358, 'Gate C'], [128, 200, 'Gate D']
           ].map(([x, y, label], i) => (
             <g key={i}>
-              <circle cx={x} cy={y} r="14" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.4)" strokeWidth="1" />
+              <circle cx={x} cy={y} r="14" fill="rgba(251, 191, 36, 0.15)" stroke="var(--accent-amber)" strokeWidth="1" />
               <text x={x} y={y + 1} textAnchor="middle" dominantBaseline="central" fontSize="6" fill="#94a3b8" fontWeight="600">{label}</text>
             </g>
           ))}

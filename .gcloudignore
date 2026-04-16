@@ -1,0 +1,10 @@
+.gcloudignore
+.git
+.gitignore
+node_modules/
+src/
+public/
+tsconfig.json
+vite.config.js
+.gemini/
+*.log

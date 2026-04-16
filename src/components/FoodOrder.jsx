@@ -74,9 +74,9 @@ export default function FoodOrder({ showToast }) {
         </button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: cart.length > 0 ? '1fr 340px' : '1fr', gap: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 24 }}>
         {/* Left — Menu */}
-        <div>
+        <div style={{ flex: '1 1 500px', minWidth: 0 }}>
           {/* Category Tabs + Search */}
           <div className="flex items-center justify-between mb-4 animate-fadeInUp delay-1" style={{ flexWrap: 'wrap', gap: 12 }}>
             <div className="pill-tabs" style={{ flexWrap: 'wrap' }}>
@@ -139,12 +139,12 @@ export default function FoodOrder({ showToast }) {
 
         {/* Right — Cart */}
         {cart.length > 0 && (
-          <div className="cart-panel animate-fadeIn">
+          <div className="cart-panel animate-fadeIn" style={{ flex: '1 1 340px' }}>
             <div className="card-header">
               <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <ShoppingCart size={18} />
                 Your Order
-                <span className="badge badge-blue">{itemCount}</span>
+                <span className="badge" style={{ background: 'var(--accent-blue)', color: 'white' }}>{itemCount}</span>
               </div>
             </div>
 

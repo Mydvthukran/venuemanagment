@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import {
   LayoutDashboard, Map, Clock, UtensilsCrossed,
   Navigation, CalendarClock, Bell, Settings,
-  Ticket, Shield
+  Ticket, Shield, Award, X
 } from 'lucide-react'
 
 const navItems = [
@@ -18,7 +19,9 @@ const navItems = [
   ]},
 ]
 
-export default function Sidebar({ activePage, setActivePage, isOpen, showToast }) {
+export default function Sidebar({ activePage, setActivePage, isOpen, showToast, userName }) {
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
       {/* Header */}
@@ -94,15 +97,51 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast }
           background: 'var(--gradient-purple)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '0.85rem', fontWeight: 700, color: 'white'
-        }}>JD</div>
+        }}>{userName?.charAt(0) || 'U'}</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>John Doe</div>
+          <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{userName || 'User'}</div>
           <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Seat A-14, Row 7</div>
+          <div style={{ fontSize: '0.68rem', color: 'var(--accent-amber)', display: 'flex', alignItems: 'center', gap: 4, marginTop: 4, fontWeight: 600 }}>
+            <Award size={10} /> Fan Lvl 4 • 1,250 pts
+          </div>
         </div>
-        <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={() => showToast('Settings panel opened.', Settings)}>
+        <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={() => setIsSettingsOpen(true)}>
           <Settings size={15} />
         </button>
       </div>
+
+      {isSettingsOpen && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', 
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)'
+        }}>
+          <div className="card" style={{ width: '90%', maxWidth: 400, position: 'relative' }}>
+            <button className="btn-icon" style={{ position: 'absolute', top: 16, right: 16, border: 'none', background: 'transparent' }} onClick={() => setIsSettingsOpen(false)}>
+              <X size={18} />
+            </button>
+            <div className="card-title" style={{ marginBottom: 20 }}>User Settings</div>
+            
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>Preferences</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-default)' }}>
+                <span>Receive Push Notifications</span>
+                <input type="checkbox" defaultChecked />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-default)' }}>
+                <span>Data Sharing (IoT Tracking)</span>
+                <input type="checkbox" defaultChecked />
+              </div>
+            </div>
+
+            <button className="btn btn-primary w-full" style={{ justifyContent: 'center', marginTop: 16 }} onClick={() => {
+              showToast('Settings saved successfully.', Settings)
+              setIsSettingsOpen(false)
+            }}>
+              Save Preferences
+            </button>
+          </div>
+        </div>
+      )}
     </aside>
   )
 }

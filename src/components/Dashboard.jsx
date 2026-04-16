@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import {
   Users, Clock, TrendingUp, TrendingDown, Zap,
   MapPin, ArrowUpRight, Wifi, ThermometerSun,
-  ShieldCheck, UtensilsCrossed, Navigation
+  ShieldCheck, UtensilsCrossed, Navigation, Cpu, Glasses, X, ArrowUp
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
@@ -67,6 +67,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 export default function Dashboard({ setActivePage, showToast }) {
+  const [isARMode, setIsARMode] = useState(false)
   const [animatedStats, setAnimatedStats] = useState({ crowd: 0, wait: 0, capacity: 0, satisfaction: 0 })
 
   useEffect(() => {
@@ -78,6 +79,43 @@ export default function Dashboard({ setActivePage, showToast }) {
 
   return (
     <div>
+      {isARMode && (
+        <div className="ar-overlay">
+          <div className="ar-viewfinder"></div>
+          
+          <div className="ar-hud-header">
+            <div className="ar-badge">
+              <span className="live-dot" style={{ background: 'var(--accent-emerald)' }}></span> VR SIMULATION ACTIVE
+            </div>
+            <button className="ar-close-btn" onClick={() => setIsARMode(false)}>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="ar-direction-core">
+            <div className="ar-arrow">
+              <ArrowUp size={64} color="white" />
+            </div>
+            
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '3rem', fontWeight: 800, textShadow: '0 4px 20px rgba(59,130,246,0.6)' }}>
+                STADIUM<span style={{ fontSize: '1.5rem', color: 'var(--accent-cyan)' }}>_CORE</span>
+              </div>
+              <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', letterSpacing: 1, textTransform: 'uppercase' }}>
+                Scanning for Edge Beacons...
+              </div>
+            </div>
+          </div>
+
+          <div style={{ position: 'absolute', bottom: 40, background: 'rgba(0,0,0,0.6)', padding: '16px 24px', borderRadius: '40px', border: '1px solid var(--accent-blue)', display: 'flex', gap: 16, alignItems: 'center', maxWidth: '90%' }}>
+            <Cpu size={24} color="var(--accent-cyan)" />
+            <div>
+              <div style={{ fontWeight: 700 }}>Neural Processing Active</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--accent-emerald)' }}>Edge Latency: 4.2ms</div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
@@ -85,6 +123,9 @@ export default function Dashboard({ setActivePage, showToast }) {
           <p>Real-time venue analytics and crowd intelligence</p>
         </div>
         <div className="header-actions">
+          <span className="live-badge" style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderRadius: 4 }}>
+            <Cpu size={12} /> Edge Node 01: 4ms
+          </span>
           <span className="live-badge" style={{ fontSize: '0.75rem' }}>
             <span className="live-dot"></span>
             LIVE DATA
@@ -96,6 +137,32 @@ export default function Dashboard({ setActivePage, showToast }) {
             <Wifi size={14} />
             Connected
           </button>
+        </div>
+      </div>
+
+      {/* GIANT VR SIMULATION BUTTON */}
+      <div 
+        className="card animate-fadeInUp" 
+        style={{ 
+          marginBottom: 24, 
+          background: 'var(--gradient-blue)', 
+          cursor: 'pointer', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          gap: 16, 
+          padding: '28px 20px', 
+          boxShadow: '0 8px 30px rgba(225,29,72,0.4)', 
+          border: '1px solid rgba(255,255,255,0.2)' 
+        }}
+        onClick={() => setIsARMode(true)}
+      >
+        <div style={{ background: 'rgba(255,255,255,0.2)', padding: 12, borderRadius: '50%' }}>
+          <Glasses size={32} color="white" />
+        </div>
+        <div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'white', letterSpacing: 1 }}>LAUNCH VR SIMULATOR</div>
+          <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.85rem' }}>Experience the venue through Augmented Reality mode</div>
         </div>
       </div>
 
@@ -157,15 +224,15 @@ export default function Dashboard({ setActivePage, showToast }) {
               <AreaChart data={crowdFlowData}>
                 <defs>
                   <linearGradient id="crowdGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#e11d48" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#e11d48" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(51,65,85,0.3)" />
                 <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="crowd" name="Crowd" stroke="#3b82f6" strokeWidth={2.5} fill="url(#crowdGrad)" />
+                <Area type="monotone" dataKey="crowd" name="Crowd" stroke="#e11d48" strokeWidth={2.5} fill="url(#crowdGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -190,7 +257,7 @@ export default function Dashboard({ setActivePage, showToast }) {
                   dataKey="density"
                   name="Density"
                   radius={[0, 6, 6, 0]}
-                  fill="#3b82f6"
+                  fill="#fbbf24"
                   background={{ fill: 'rgba(51,65,85,0.15)', radius: [0, 6, 6, 0] }}
                 />
               </BarChart>
@@ -206,7 +273,7 @@ export default function Dashboard({ setActivePage, showToast }) {
           <div className="card-header">
             <div className="card-title">Quick Actions</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+          <div className="quick-action-grid">
             <button style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: 'var(--radius-md)', color: 'var(--text-primary)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.85rem', fontWeight: 500, fontFamily: 'var(--font-body)'
               }} className="quick-action-btn" onClick={() => setActivePage('food')}>

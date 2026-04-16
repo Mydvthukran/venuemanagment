@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Clock, Users, TrendingDown, RefreshCw, Filter, Search } from 'lucide-react'
+import { Clock, Users, TrendingDown, RefreshCw, Filter, Search, Smartphone } from 'lucide-react'
 
 const queues = [
   { id: 1, name: 'Main Food Court', location: 'Zone A — Level 1', icon: '🍔', wait: 14, people: 86, capacity: 75, trend: 'up', color: 'amber' },
@@ -141,9 +141,18 @@ export default function QueueManager({ showToast }) {
                 <Users size={13} />
                 {q.people}
               </div>
-              <div className="queue-wait">
+              <div className="queue-wait" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                 <div className={`queue-wait-time wait-${waitClass}`}>{q.wait}m</div>
                 <div className="queue-wait-label">wait</div>
+                {q.wait > 5 && (
+                  <button 
+                    className="btn btn-primary btn-sm" 
+                    style={{ padding: '2px 8px', fontSize: '0.65rem', transform: 'scale(0.9)', transformOrigin: 'right center' }}
+                    onClick={() => showToast(`Joined virtual queue for ${q.name}. ETA: ${q.wait}m.`, Smartphone)}
+                  >
+                    <Smartphone size={10} /> Join
+                  </button>
+                )}
               </div>
             </div>
           )
