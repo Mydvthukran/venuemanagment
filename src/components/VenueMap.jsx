@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X, Users, Clock, AlertTriangle, ArrowUpRight, Navigation, MonitorPlay } from 'lucide-react'
 import { trackVenueEvent } from '../services/firebase'
+import { applyScenarioToDensity, getScenarioMeta } from '../lib/scenarioEngine'
 
 const zones = [
   { id: 'north', label: 'North Stand', d: 'M200,60 Q350,20 500,60 L480,130 Q350,100 220,130 Z', density: 82, color: '#ef4444', people: 8200, wait: '12 min', temp: '24°C', gates: 'A1-A4' },
@@ -39,17 +40,34 @@ function getTextPos(id) {
   return positions[id] || [350, 200]
 }
 
-export default function VenueMap({ setActivePage, showToast }) {
+const scenarioSimBaseline = {
+  normal: { crowd: 46200, wait: 22 },
+  halftime: { crowd: 48600, wait: 29 },
+  egress: { crowd: 43800, wait: 25 },
+}
+
+export default function VenueMap({ setActivePage, showToast, simulationMode = 'normal' }) {
   const [selectedZone, setSelectedZone] = useState(null)
   const [isSimulating, setIsSimulating] = useState(false)
-  const [simData, setSimData] = useState({ crowd: 46200, wait: 22 })
+  const [simData, setSimData] = useState(scenarioSimBaseline[simulationMode] || scenarioSimBaseline.normal)
+  const scenario = getScenarioMeta(simulationMode)
+
+  const buildScenarioDensity = () =>
+    Object.fromEntries(
+      zones.map((zone) => [zone.id, applyScenarioToDensity(zone.density, simulationMode)]),
+    )
+
   const [zoneDensity, setZoneDensity] = useState(() =>
-    Object.fromEntries(zones.map((zone) => [zone.id, zone.density])),
+    buildScenarioDensity(),
   )
+
+  useEffect(() => {
+    setSimData(scenarioSimBaseline[simulationMode] || scenarioSimBaseline.normal)
+  }, [simulationMode])
   
   useEffect(() => {
     if (!isSimulating) {
-      setZoneDensity(Object.fromEntries(zones.map((zone) => [zone.id, zone.density])))
+      setZoneDensity(buildScenarioDensity())
       return undefined
     }
 
@@ -63,7 +81,7 @@ export default function VenueMap({ setActivePage, showToast }) {
         const next = { ...prev }
         zones.forEach((zone) => {
           const drift = Math.floor(Math.random() * 7) - 3
-          const current = prev[zone.id] ?? zone.density
+          const current = prev[zone.id] ?? applyScenarioToDensity(zone.density, simulationMode)
           next[zone.id] = Math.min(98, Math.max(25, current + drift))
         })
         return next
@@ -71,7 +89,7 @@ export default function VenueMap({ setActivePage, showToast }) {
     }, 2000)
 
     return () => clearInterval(interval)
-  }, [isSimulating])
+  }, [isSimulating, simulationMode])
 
   const selected = useMemo(() => {
     const zone = zones.find((z) => z.id === selectedZone)
@@ -120,7 +138,7 @@ export default function VenueMap({ setActivePage, showToast }) {
             </button>
           </div>
           <h2>{isSimulating ? 'Digital Twin Simulator' : 'Venue Density Map'}</h2>
-          <p>{isSimulating ? `Modeling ${simData.crowd.toLocaleString()} attendance flow via AI algorithms` : 'Real-time spatial distribution and bottleneck tracking'}</p>
+          <p>{isSimulating ? `Modeling ${simData.crowd.toLocaleString()} attendance flow via AI algorithms (${scenario.shortLabel})` : `Real-time spatial distribution and bottleneck tracking (${scenario.shortLabel})`}</p>
         </div>
         <div className="header-actions">
           <span className="live-badge">

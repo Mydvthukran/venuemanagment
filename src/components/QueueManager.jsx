@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Clock, Users, TrendingDown, RefreshCw, Search, Smartphone, Sparkles } from 'lucide-react'
 import { getQueueRecommendation, rankQueues } from '../lib/venueIntelligence'
 import { trackVenueEvent } from '../services/firebase'
+import { applyScenarioToQueue, getScenarioMeta } from '../lib/scenarioEngine'
 
 const queues = [
   { id: 1, name: 'Main Food Court', location: 'Zone A — Level 1', icon: '🍔', wait: 14, people: 86, capacity: 75, trend: 'up', color: 'amber' },
@@ -26,34 +27,40 @@ function getCapacityPct(people, capacity) {
   return Math.min((people / capacity) * 100, 100)
 }
 
-export default function QueueManager({ showToast }) {
+export default function QueueManager({ showToast, simulationMode = 'normal' }) {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const scenario = getScenarioMeta(simulationMode)
+
+  const scenarioQueues = useMemo(
+    () => queues.map((queue) => applyScenarioToQueue(queue, simulationMode)),
+    [simulationMode],
+  )
 
   const filtered = useMemo(
     () =>
-      queues
+      scenarioQueues
         .filter((q) => {
       if (filter === 'low') return q.wait <= 5
       if (filter === 'busy') return q.wait > 12
       return true
         })
         .filter((q) => q.name.toLowerCase().includes(search.toLowerCase())),
-    [filter, search],
+    [scenarioQueues, filter, search],
   )
 
   const rankedQueues = useMemo(() => rankQueues(filtered), [filtered])
   const recommendation = useMemo(() => getQueueRecommendation(filtered), [filtered])
 
-  const avgWait = Math.round(queues.reduce((a, q) => a + q.wait, 0) / queues.length)
-  const totalInQueue = queues.reduce((a, q) => a + q.people, 0)
+  const avgWait = Math.round(scenarioQueues.reduce((a, q) => a + q.wait, 0) / scenarioQueues.length)
+  const totalInQueue = scenarioQueues.reduce((a, q) => a + q.people, 0)
 
   return (
     <div>
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
           <h2>Queue Status</h2>
-          <p>Real-time wait times across all venues and facilities</p>
+          <p>Real-time wait times across all venues and facilities ({scenario.shortLabel})</p>
         </div>
         <div className="header-actions">
           <button
@@ -106,7 +113,7 @@ export default function QueueManager({ showToast }) {
           <div className="stat-card-top">
             <div className="stat-icon emerald"><Clock size={20} /></div>
           </div>
-          <div className="stat-value">{queues.filter(q => q.wait <= 5).length}</div>
+          <div className="stat-value">{scenarioQueues.filter(q => q.wait <= 5).length}</div>
           <div className="stat-label">Short Wait Locations</div>
         </div>
 
@@ -114,7 +121,7 @@ export default function QueueManager({ showToast }) {
           <div className="stat-card-top">
             <div className="stat-icon rose"><Clock size={20} /></div>
           </div>
-          <div className="stat-value">{queues.filter(q => q.wait > 12).length}</div>
+          <div className="stat-value">{scenarioQueues.filter(q => q.wait > 12).length}</div>
           <div className="stat-label">Congested Points</div>
         </div>
       </div>

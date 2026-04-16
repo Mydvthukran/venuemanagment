@@ -9,6 +9,7 @@ import {
   Tooltip, ResponsiveContainer, BarChart, Bar
 } from 'recharts'
 import { trackVenueEvent } from '../services/firebase'
+import { applyScenarioToDashboardStats, applyScenarioToDensity, getScenarioMeta } from '../lib/scenarioEngine'
 
 // Simulated crowd flow data
 const crowdFlowData = [
@@ -60,16 +61,30 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export default function Dashboard({ setActivePage, showToast }) {
+const baseStats = { crowd: 43200, wait: 8, capacity: 95, satisfaction: 92 }
+
+export default function Dashboard({ setActivePage, showToast, simulationMode = 'normal' }) {
   const [isARMode, setIsARMode] = useState(false)
   const [animatedStats, setAnimatedStats] = useState({ crowd: 0, wait: 0, capacity: 0, satisfaction: 0 })
+  const scenario = getScenarioMeta(simulationMode)
+
+  const scenarioCrowdFlow = crowdFlowData.map((point) => ({
+    ...point,
+    crowd: Math.round(point.crowd * scenario.attendanceMultiplier),
+    capacity: Math.min(100, applyScenarioToDensity(point.capacity, simulationMode)),
+  }))
+
+  const scenarioZoneData = zoneData.map((zone) => ({
+    ...zone,
+    density: applyScenarioToDensity(zone.density, simulationMode),
+  }))
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setAnimatedStats({ crowd: 43200, wait: 8, capacity: 95, satisfaction: 92 })
+      setAnimatedStats(applyScenarioToDashboardStats(baseStats, simulationMode))
     }, 300)
     return () => clearTimeout(timer)
-  }, [])
+  }, [simulationMode])
 
   return (
     <div>
@@ -121,7 +136,7 @@ export default function Dashboard({ setActivePage, showToast }) {
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
           <h2>Command Center</h2>
-          <p>Real-time venue analytics and crowd intelligence</p>
+          <p>Real-time venue analytics and crowd intelligence ({scenario.label})</p>
         </div>
         <div className="header-actions">
           <span className="live-badge" style={{ fontSize: '0.75rem', background: 'rgba(16, 185, 129, 0.15)', color: 'var(--accent-emerald)', borderRadius: 4 }}>
@@ -232,7 +247,7 @@ export default function Dashboard({ setActivePage, showToast }) {
           </div>
           <div style={{ width: '100%', height: 240 }}>
             <ResponsiveContainer>
-              <AreaChart data={crowdFlowData}>
+              <AreaChart data={scenarioCrowdFlow}>
                 <defs>
                   <linearGradient id="crowdGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#e11d48" stopOpacity={0.3} />
@@ -259,7 +274,7 @@ export default function Dashboard({ setActivePage, showToast }) {
           </div>
           <div style={{ width: '100%', height: 240 }}>
             <ResponsiveContainer>
-              <BarChart data={zoneData} layout="vertical" barSize={18}>
+              <BarChart data={scenarioZoneData} layout="vertical" barSize={18}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(51,65,85,0.3)" horizontal={false} />
                 <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="zone" tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 500 }} axisLine={false} tickLine={false} width={50} />

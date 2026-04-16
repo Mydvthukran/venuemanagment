@@ -4,6 +4,7 @@ import {
   Navigation, CalendarClock, Bell, Settings,
   Ticket, Award, X
 } from 'lucide-react'
+import { getScenarioMeta } from '../lib/scenarioEngine'
 
 const navItems = [
   { id: 'main', label: 'MAIN', items: [
@@ -19,8 +20,9 @@ const navItems = [
   ]},
 ]
 
-export default function Sidebar({ activePage, setActivePage, isOpen, showToast, userName }) {
+export default function Sidebar({ activePage, setActivePage, isOpen, showToast, userName, simulationMode }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const scenario = getScenarioMeta(simulationMode)
 
   return (
     <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
@@ -40,7 +42,7 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
             <span className="live-dot"></span>
             LIVE
           </span>
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>67' min</span>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{scenario.shortLabel}</span>
         </div>
         <div className="event-teams">
           <div className="team">

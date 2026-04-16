@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Login from './components/Login'
 import { getAssistantResponse, sanitizeUserInput } from './lib/assistant'
 import { trackVenueEvent } from './services/firebase'
+import { getScenarioMeta, listScenarios } from './lib/scenarioEngine'
 
 const Dashboard = lazy(() => import('./components/Dashboard'))
 const VenueMap = lazy(() => import('./components/VenueMap'))
@@ -33,11 +34,14 @@ export default function App() {
   const [isListening, setIsListening] = useState(false)
   const [activeLang, setActiveLang] = useState('EN')
   const [isResponding, setIsResponding] = useState(false)
+  const [simulationMode, setSimulationMode] = useState('normal')
   
   const initialBotMsg = activeLang === 'EN' ? "Hello! I'm your digital concierge. How can I assist your venue experience today?" : "¡Hola! Soy tu conserje digital. ¿Cómo puedo asistir en tu experiencia hoy?"
   
   const [chatMessages, setChatMessages] = useState([{ id: 'bot-welcome', type: 'bot', text: initialBotMsg }])
   const [chatInput, setChatInput] = useState('')
+  const scenarioOptions = listScenarios()
+  const activeScenario = getScenarioMeta(simulationMode)
 
   const handleSendAI = () => {
     if (isResponding) return
@@ -213,11 +217,37 @@ export default function App() {
         isOpen={sidebarOpen}
         showToast={showToast}
         userName={userName}
+        simulationMode={simulationMode}
       />
 
       <main className="main-content" id="main-content">
+        <div className="card animate-fadeInUp" style={{ marginBottom: 20 }}>
+          <div className="card-header" style={{ marginBottom: 12 }}>
+            <div>
+              <div className="card-title">Scenario Simulation Mode</div>
+              <div className="card-subtitle">{activeScenario.description}</div>
+            </div>
+            <span className="badge badge-amber">{activeScenario.shortLabel}</span>
+          </div>
+          <div className="pill-tabs" style={{ flexWrap: 'wrap' }}>
+            {scenarioOptions.map((scenario) => (
+              <button
+                key={scenario.id}
+                className={`pill-tab ${simulationMode === scenario.id ? 'active' : ''}`}
+                onClick={() => {
+                  setSimulationMode(scenario.id)
+                  showToast(`Scenario switched to ${scenario.label}.`, Info)
+                  trackVenueEvent('scenario_mode_changed', { scenario: scenario.id })
+                }}
+              >
+                {scenario.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Suspense fallback={<div className="card">Loading module...</div>}>
-          <PageComponent setActivePage={setActivePage} showToast={showToast} />
+          <PageComponent setActivePage={setActivePage} showToast={showToast} simulationMode={simulationMode} />
         </Suspense>
       </main>
     </div>

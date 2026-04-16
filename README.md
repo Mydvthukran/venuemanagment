@@ -21,10 +21,12 @@ Sports and live event venue experience optimization.
 4. AI assistant provides context-aware guidance for common venue intents.
 5. Smart route logic dynamically ranks paths by strategy (balanced, fastest, least crowded, least walking).
 6. Queue intelligence predicts near-future wait times and recommends best service point.
-7. User actions are tracked as analytics events when Firebase env variables are configured.
+7. Global Scenario Simulation Mode changes behavior across Dashboard, Queue, Navigation, and Map in real time.
+8. User actions are tracked as analytics events when Firebase env variables are configured.
 
 ## Top-10 Differentiators
 - Context-aware decision engine for both navigation and queue selection (`src/lib/venueIntelligence.js`).
+- Cross-page Scenario Engine for Normal, Half-Time Rush, and Post-Match Egress (`src/lib/scenarioEngine.js`).
 - Digital Twin simulation mode with live zone-density drift to mimic real crowd behavior.
 - Action-level Firebase Analytics instrumentation across chat, navigation, queue, and food flows.
 - Accessibility-first UX updates: skip link, keyboard-interactive map zones, focus-visible states, reduced-motion mode.
@@ -54,6 +56,7 @@ Tracked events include:
 - `food_item_added`
 - `food_order_placed`
 - `notifications_marked_read`
+- `scenario_mode_changed`
 
 ### Environment variables
 Create a `.env` file with:
@@ -78,6 +81,8 @@ If these values are missing, the app safely continues without analytics.
 Unit tests cover business logic for:
 - Assistant intent + response selection + sanitization.
 - Cart mutation and totals calculations.
+- Route and queue intelligence scoring.
+- Scenario simulation behavior transforms.
 
 Run tests:
 

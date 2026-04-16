@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { rankRoutes } from '../lib/venueIntelligence'
 import { trackVenueEvent } from '../services/firebase'
+import { applyScenarioToRoutes, getScenarioMeta } from '../lib/scenarioEngine'
 
 const destinations = [
   { id: 'seat', label: 'My Seat (A-14)', icon: Ticket },
@@ -36,14 +37,20 @@ const routesData = {
   ],
 }
 
-export default function SmartNav({ showToast }) {
+export default function SmartNav({ showToast, simulationMode = 'normal' }) {
   const [destination, setDestination] = useState('seat')
   const [isARMode, setIsARMode] = useState(false)
   const [routeStrategy, setRouteStrategy] = useState('balanced')
+  const scenario = getScenarioMeta(simulationMode)
+
+  const scenarioRoutes = useMemo(
+    () => applyScenarioToRoutes(routesData[destination] || [], simulationMode, destination),
+    [destination, simulationMode],
+  )
 
   const routes = useMemo(
-    () => rankRoutes(routesData[destination] || [], routeStrategy),
-    [destination, routeStrategy],
+    () => rankRoutes(scenarioRoutes, routeStrategy),
+    [scenarioRoutes, routeStrategy],
   )
 
   const strategyOptions = [
@@ -71,7 +78,17 @@ export default function SmartNav({ showToast }) {
             </button>
           </div>
           <h2>Smart Navigation</h2>
-          <p>AI-optimized routes that avoid crowd congestion</p>
+          <p>AI-optimized routes that avoid crowd congestion ({scenario.shortLabel})</p>
+        </div>
+      </div>
+
+      <div className="delivery-banner animate-fadeInUp delay-1" style={{ marginBottom: 16 }}>
+        <div className="delivery-banner-icon" style={{ background: 'var(--gradient-blue)' }}>
+          <Navigation size={22} />
+        </div>
+        <div className="delivery-banner-text">
+          <h3>Scenario-Aware Routing Active</h3>
+          <p>{scenario.description}</p>
         </div>
       </div>
 
