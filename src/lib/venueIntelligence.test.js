@@ -35,6 +35,21 @@ describe('venue intelligence', () => {
 
     const leastCrowded = rankRoutes(routes, 'leastCrowded')
     expect(leastCrowded[0].name).toBe('Route C')
+
+    const leastWalking = rankRoutes(routes, 'leastWalking')
+    expect(leastWalking[0].name).toBe('Route C')
+  })
+
+  it('uses fallback logic for unknown crowd and balanced strategy', () => {
+    const routes = [{ id: 1, name: 'Mystery', time: '9 min', distance: '500m', crowd: 'Unknown', steps: 250 }]
+    const ranked = rankRoutes(routes)
+    expect(ranked[0].reason.toLowerCase()).toContain('best overall balance')
+    expect(ranked[0].recommendationScore).toBeGreaterThan(0)
+  })
+
+  it('returns null recommendation for empty queues', () => {
+    expect(getQueueRecommendation([])).toBeNull()
+    expect(predictQueueWait('7', 'unknown')).toBe(7)
   })
 
   it('ranked queues include computed fields', () => {

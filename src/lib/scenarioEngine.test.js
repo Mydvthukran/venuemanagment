@@ -14,6 +14,11 @@ describe('scenario engine', () => {
     expect(meta.shortLabel).toBe('Half-Time')
   })
 
+  it('falls back to normal scenario for unknown keys', () => {
+    const meta = getScenarioMeta('unknown-mode')
+    expect(meta.id).toBe('normal')
+  })
+
   it('lists all scenarios', () => {
     expect(listScenarios()).toHaveLength(3)
   })
@@ -34,6 +39,7 @@ describe('scenario engine', () => {
     const adjusted = applyScenarioToRoutes(routes, 'egress', 'exit')
     expect(adjusted[0].time).toBe('7 min')
     expect(adjusted[1].crowd).toBe('High')
+    expect(adjusted[1].time).toBe('7 min')
   })
 
   it('applies density and dashboard deltas', () => {

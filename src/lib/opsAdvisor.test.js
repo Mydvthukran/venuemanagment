@@ -21,6 +21,15 @@ describe('ops advisor', () => {
     expect(egressActions).toContain('gate d')
   })
 
+  it('includes surge actions for halftime and fallback for normal', () => {
+    const halftimeActions = buildActionPlan('halftime').join(' ').toLowerCase()
+    const normalActions = buildActionPlan('normal').join(' ').toLowerCase()
+
+    expect(halftimeActions).toContain('queue marshals')
+    expect(halftimeActions).toContain('pre-stage')
+    expect(normalActions).toContain('monitor congestion model')
+  })
+
   it('builds a complete report payload', () => {
     const report = buildScenarioReport('normal')
     expect(report).toHaveProperty('generatedAt')

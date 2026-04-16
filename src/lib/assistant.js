@@ -24,13 +24,31 @@ const INTENT_RULES = [
   { intent: 'queue', terms: ['wait', 'queue', 'linea'] },
 ]
 
+const INPUT_MAX_LENGTH = 240
+const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g
+const BLOCKLIST_PATTERNS = [
+  /<\/?\s*script\b/gi,
+  /javascript\s*:/gi,
+  /data\s*:\s*text\/html/gi,
+  /on[a-z]+\s*=/gi,
+]
+
 export function sanitizeUserInput(value) {
   if (typeof value !== 'string') {
     return ''
   }
 
-  const trimmed = value.trim().slice(0, 240)
-  return trimmed.replace(/[<>]/g, '')
+  let normalized = value.normalize('NFKC').replace(CONTROL_CHARS, ' ').trim()
+
+  BLOCKLIST_PATTERNS.forEach((pattern) => {
+    normalized = normalized.replace(pattern, '')
+  })
+
+  return normalized
+    .replace(/[<>`]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .slice(0, INPUT_MAX_LENGTH)
 }
 
 export function inferIntent(input) {
