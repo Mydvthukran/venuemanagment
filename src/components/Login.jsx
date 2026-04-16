@@ -27,48 +27,54 @@ export default function Login({ onLogin }) {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Full Name</label>
+            <label className="form-label" htmlFor="full-name">Full Name</label>
             <div className="search-input-wrapper" style={{ maxWidth: '100%' }}>
               <User size={16} className="search-icon" />
               <input
+                id="full-name"
                 type="text"
                 className="form-input"
                 style={{ paddingLeft: 40 }}
                 placeholder="e.g. Alex Jensen"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                autoComplete="name"
                 required
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label" htmlFor="email-address">Email Address</label>
             <div className="search-input-wrapper" style={{ maxWidth: '100%' }}>
               <Mail size={16} className="search-icon" />
               <input
+                id="email-address"
                 type="email"
                 className="form-input"
                 style={{ paddingLeft: 40 }}
                 placeholder="fan@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">Ticket ID / Booking Ref</label>
+            <label className="form-label" htmlFor="ticket-id">Ticket ID / Booking Ref</label>
             <div className="search-input-wrapper" style={{ maxWidth: '100%' }}>
               <Ticket size={16} className="search-icon" />
               <input
+                id="ticket-id"
                 type="text"
                 className="form-input"
                 style={{ paddingLeft: 40 }}
                 placeholder="e.g. SEC14-A29-88"
                 value={ticketId}
                 onChange={(e) => setTicketId(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>

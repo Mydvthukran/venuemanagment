@@ -45,7 +45,7 @@ export default function SmartNav({ showToast }) {
       <div className="page-header animate-fadeInUp">
         <div className="page-header-left">
           <div className="header-actions" style={{ marginBottom: 8 }}>
-            <button className="btn btn-secondary btn-sm" onClick={() => setIsARMode(true)}>
+            <button className="btn btn-secondary btn-sm" aria-label="Open augmented reality navigation" onClick={() => setIsARMode(true)}>
               <Glasses size={14} />
               Enter AR Mode
             </button>
@@ -150,7 +150,12 @@ export default function SmartNav({ showToast }) {
               <div className="route-eta-value">{route.time}</div>
               <div className="route-eta-label">ETA</div>
             </div>
-            <button className="btn-icon" style={{ flexShrink: 0 }}>
+            <button
+              className="btn-icon"
+              style={{ flexShrink: 0 }}
+              aria-label={`Start navigation via ${route.name}`}
+              onClick={() => showToast(`Navigation started: ${route.name}`, Navigation)}
+            >
               <ArrowRight size={16} />
             </button>
           </div>
@@ -185,7 +190,7 @@ export default function SmartNav({ showToast }) {
             <div className="ar-badge">
               <span className="live-dot" style={{ background: 'var(--accent-emerald)' }}></span> Camera Feed Active
             </div>
-            <button className="ar-close-btn" onClick={() => setIsARMode(false)}>
+            <button className="ar-close-btn" aria-label="Close AR mode" onClick={() => setIsARMode(false)}>
               <X size={20} />
             </button>
           </div>

@@ -61,7 +61,7 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
       </div>
 
       {/* Navigation */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" aria-label="Primary navigation">
         {navItems.map(section => (
           <div key={section.id}>
             <div className="nav-section-label">{section.label}</div>
@@ -73,6 +73,7 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
                   className={`nav-item ${activePage === item.id ? 'active' : ''}`}
                   onClick={() => setActivePage(item.id)}
                   id={`nav-${item.id}`}
+                  aria-current={activePage === item.id ? 'page' : undefined}
                 >
                   <Icon size={18} className="nav-item-icon" />
                   {item.label}
@@ -105,7 +106,7 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
             <Award size={10} /> Fan Lvl 4 • 1,250 pts
           </div>
         </div>
-        <button className="btn-icon" style={{ width: 30, height: 30 }} onClick={() => setIsSettingsOpen(true)}>
+        <button className="btn-icon" aria-label="Open user settings" style={{ width: 30, height: 30 }} onClick={() => setIsSettingsOpen(true)}>
           <Settings size={15} />
         </button>
       </div>
@@ -115,8 +116,8 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', 
           zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)'
         }}>
-          <div className="card" style={{ width: '90%', maxWidth: 400, position: 'relative' }}>
-            <button className="btn-icon" style={{ position: 'absolute', top: 16, right: 16, border: 'none', background: 'transparent' }} onClick={() => setIsSettingsOpen(false)}>
+          <div className="card" role="dialog" aria-modal="true" aria-label="User settings" style={{ width: '90%', maxWidth: 400, position: 'relative' }}>
+            <button className="btn-icon" aria-label="Close settings" style={{ position: 'absolute', top: 16, right: 16, border: 'none', background: 'transparent' }} onClick={() => setIsSettingsOpen(false)}>
               <X size={18} />
             </button>
             <div className="card-title" style={{ marginBottom: 20 }}>User Settings</div>
@@ -124,12 +125,12 @@ export default function Sidebar({ activePage, setActivePage, isOpen, showToast, 
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, fontWeight: 600 }}>Preferences</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-default)' }}>
-                <span>Receive Push Notifications</span>
-                <input type="checkbox" defaultChecked />
+                <label htmlFor="pref-push">Receive Push Notifications</label>
+                <input id="pref-push" type="checkbox" defaultChecked />
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid var(--border-default)' }}>
-                <span>Data Sharing (IoT Tracking)</span>
-                <input type="checkbox" defaultChecked />
+                <label htmlFor="pref-iot">Data Sharing (IoT Tracking)</label>
+                <input id="pref-iot" type="checkbox" defaultChecked />
               </div>
             </div>
 

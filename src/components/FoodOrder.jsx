@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { Search, ShoppingCart, Plus, Minus, Trash2, ArrowRight, Clock, MapPin } from 'lucide-react'
+import {
+  addItemToCart,
+  updateItemQuantity,
+  removeItemFromCart,
+  calculateCartTotals,
+} from '../lib/cart'
 
 const menuCategories = ['All', 'Burgers', 'Pizza', 'Drinks', 'Snacks', 'Desserts']
 
@@ -28,28 +34,18 @@ export default function FoodOrder({ showToast }) {
     .filter(item => item.name.toLowerCase().includes(search.toLowerCase()))
 
   const addToCart = (item) => {
-    setCart(prev => {
-      const existing = prev.find(c => c.id === item.id)
-      if (existing) {
-        return prev.map(c => c.id === item.id ? { ...c, qty: c.qty + 1 } : c)
-      }
-      return [...prev, { ...item, qty: 1 }]
-    })
+    setCart((prev) => addItemToCart(prev, item))
   }
 
   const updateQty = (id, delta) => {
-    setCart(prev =>
-      prev.map(c => c.id === id ? { ...c, qty: Math.max(0, c.qty + delta) } : c)
-          .filter(c => c.qty > 0)
-    )
+    setCart((prev) => updateItemQuantity(prev, id, delta))
   }
 
   const removeFromCart = (id) => {
-    setCart(prev => prev.filter(c => c.id !== id))
+    setCart((prev) => removeItemFromCart(prev, id))
   }
 
-  const total = cart.reduce((sum, c) => sum + c.price * c.qty, 0)
-  const itemCount = cart.reduce((sum, c) => sum + c.qty, 0)
+  const { total, itemCount } = calculateCartTotals(cart)
 
   return (
     <div>
@@ -95,6 +91,7 @@ export default function FoodOrder({ showToast }) {
               <input
                 type="text"
                 placeholder="Search menu..."
+                aria-label="Search menu items"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
               />
@@ -104,7 +101,7 @@ export default function FoodOrder({ showToast }) {
           {/* Food Grid */}
           <div className="food-grid animate-fadeInUp delay-2">
             {filtered.map(item => (
-              <div className="food-card" key={item.id} onClick={() => addToCart(item)}>
+              <div className="food-card" key={item.id}>
                 <div className="food-image">
                   {item.emoji}
                   <span className="food-prep-badge">
@@ -127,7 +124,11 @@ export default function FoodOrder({ showToast }) {
                   <div className="food-desc">{item.desc}</div>
                   <div className="food-footer">
                     <div className="food-price">${item.price.toFixed(2)}</div>
-                    <button className="food-add-btn" onClick={(e) => { e.stopPropagation(); addToCart(item) }}>
+                    <button
+                      className="food-add-btn"
+                      aria-label={`Add ${item.name} to cart`}
+                      onClick={() => addToCart(item)}
+                    >
                       <Plus size={16} />
                     </button>
                   </div>
@@ -157,15 +158,15 @@ export default function FoodOrder({ showToast }) {
                     <div className="cart-item-price">${(item.price * item.qty).toFixed(2)}</div>
                   </div>
                   <div className="cart-qty-controls">
-                    <button className="cart-qty-btn" onClick={() => updateQty(item.id, -1)}>
+                    <button className="cart-qty-btn" aria-label={`Decrease quantity for ${item.name}`} onClick={() => updateQty(item.id, -1)}>
                       <Minus size={12} />
                     </button>
                     <span style={{ fontSize: '0.85rem', fontWeight: 600, minWidth: 20, textAlign: 'center' }}>{item.qty}</span>
-                    <button className="cart-qty-btn" onClick={() => updateQty(item.id, 1)}>
+                    <button className="cart-qty-btn" aria-label={`Increase quantity for ${item.name}`} onClick={() => updateQty(item.id, 1)}>
                       <Plus size={12} />
                     </button>
                   </div>
-                  <button onClick={() => removeFromCart(item.id)} style={{
+                  <button aria-label={`Remove ${item.name} from cart`} onClick={() => removeFromCart(item.id)} style={{
                     background: 'none', border: 'none',
                     color: 'var(--text-muted)', cursor: 'pointer', padding: 4
                   }}>
